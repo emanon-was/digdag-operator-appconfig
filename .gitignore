@@ -155,6 +155,11 @@ project/plugins/project/
 .history
 .cache
 .lib/
+.bloop
+.bsp/
+project/project/
+project/target/
+.metals/
 
 ### Scala ###
 *.class
@@ -187,5 +192,9 @@ tags
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+
+
+### digdag ###
+.digdag
 
 # End of https://www.toptal.com/developers/gitignore/api/emacs,vim,intellij+all,vscode,sbt,scala

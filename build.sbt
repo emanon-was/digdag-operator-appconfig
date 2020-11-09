@@ -1,15 +1,29 @@
 import Dependencies._
 
 ThisBuild / scalaVersion     := "2.12.8"
-ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "com.example"
-ThisBuild / organizationName := "example"
+ThisBuild / version          := "1.0.0"
+ThisBuild / organization     := "io.digdag.plugin"
+ThisBuild / organizationName := "aws-appconfig"
+
+ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+ThisBuild / publishTo := Some(Resolver.file("digdag", new File("./.digdag/plugins/")))
+ThisBuild / publishMavenStyle := true
+ThisBuild / isSnapshot := true
+ThisBuild / crossPaths := false
+ThisBuild / exportJars := true
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val root = (project in file("."))
   .settings(
     name := "digdag-operator-aws-appconfig",
-    libraryDependencies += scalaTest % Test
+    resolvers += "bintray-digdag" at "https://dl.bintray.com/digdag/maven",
+    libraryDependencies += scalaTest % Test,
+    libraryDependencies ++= digdagDeps,
+    libraryDependencies ++= slf4jDeps,
+    libraryDependencies ++= awsjavasdkDeps,
   )
+
 
 // Uncomment the following for publishing to Sonatype.
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for more detail.
@@ -37,4 +51,6 @@ lazy val root = (project in file("."))
 //   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
 //   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 // }
-// ThisBuild / publishMavenStyle := true
+
+
+

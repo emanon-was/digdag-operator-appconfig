@@ -1,0 +1,22 @@
+_export:
+  plugin:
+    repositories:
+      # - https://jitpack.io
+    dependencies:
+      - io.digdag.plugin:digdag-operator-aws-appconfig:1.0.0
+      # - com.github.emanon-was:digdag-operator-appconfig:1.0.0
+
++step1:
+  aws.appconfig.get_configuration>:
+  credentials: # (optional)
+    access_key_id: "test1"
+    secret_access_key: "test2"
+  resource: # (required)
+    application: "digdag" # (required)
+    environment: "main" # (required)
+    configuration: "test" # (required)
+    client_id: "abcdefghijklmnopqrstuvwxyz" # (required)
+    client_configuration_version: "1" # (optional)
+  store:
+    store_key1: "appconfig.key1"
+    store_key2: "appconfig.key2"
