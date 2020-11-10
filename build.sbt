@@ -19,8 +19,8 @@ lazy val root = (project in file("."))
     name := "digdag-operator-aws-appconfig",
     resolvers += "bintray-digdag" at "https://dl.bintray.com/digdag/maven",
     libraryDependencies += scalaTest % Test,
-    libraryDependencies ++= digdagDeps,
-    libraryDependencies ++= slf4jDeps,
+    libraryDependencies ++= digdagDeps.map(dep => Seq(dep % Provided, dep % Test)).flatten,
+    libraryDependencies ++= slf4jDeps.map(dep => Seq(dep % Provided, dep % Test)).flatten,
     libraryDependencies ++= awsjavasdkDeps,
   )
 

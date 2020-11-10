@@ -13,7 +13,12 @@ class GetConfigurationOperatorFactory(val operatorName: String) extends Operator
 class GetConfigurationOperator(ctx: OperatorContext) extends BaseOperator(ctx) {
   override def runTask(): TaskResult = {
     val config = request.getConfig
-    println(ReadParams(config))
+    for (
+      params <- ReadParams(config)
+    ) yield {
+      println(params)
+      println(GetConfiguration(params.profile, params.resource))
+    }
     TaskResult.empty(request)
   }
 }
