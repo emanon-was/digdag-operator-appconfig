@@ -1,6 +1,6 @@
-package io.digdag.plugin.aws.appconfig.get_configuration
+package io.digdag.plugin.aws.appconfig.getconfiguration
 
-import io.digdag.plugin.aws.appconfig.implicits._
+import io.digdag.plugin.aws.appconfig.Implicits._
 import scala.util.{Try, Success, Failure}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.auth.credentials.{

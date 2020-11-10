@@ -1,4 +1,4 @@
-package io.digdag.plugin.aws.appconfig.get_configuration
+package io.digdag.plugin.aws.appconfig.getconfiguration
 
 import io.digdag.client.config.Config
 import collection.JavaConverters._
