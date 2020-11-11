@@ -27,7 +27,6 @@ object GetConfiguration {
     case class ResponseError(val cause: Throwable) extends Error
   }
 
-
   sealed trait Response {
     val content: String
   }
@@ -39,15 +38,18 @@ object GetConfiguration {
   }
 
 
-  def apply(profile: Params.Profile, resource: Params.Resource): Either[Error, Response] = for (
-    awsClient <- awsClient(profile);
-    awsRequest <- awsRequest(resource);
-    awsResponse <- request(awsClient, awsRequest);
-    response <- response(awsResponse)
-  ) yield response
+  def apply(profile: OperatorParams.Profile, resource: OperatorParams.Resource): Either[Error, Response] = {
+    for {
+      awsClient <- awsClient(profile)
+      awsRequest <- awsRequest(resource)
+      awsResponse <- request(awsClient, awsRequest)
+      response <- response(awsResponse)
+    } yield {
+      response
+    }
+  }
 
-
-  def awsClient(profile: Params.Profile): Either[Error, AppConfigClient] = Try {
+  private def awsClient(profile: OperatorParams.Profile): Either[Error, AppConfigClient] = Try {
     val region = Region.of(profile.region)
     val credentialsProvider = profile.credentials match {
       case None => DefaultCredentialsProvider.create()
@@ -64,7 +66,7 @@ object GetConfiguration {
   }.toEither.left.map(Error.ClientBuildError(_))
 
 
-  def awsRequest(resource: Params.Resource): Either[Error, GetConfigurationRequest] = Try {
+  private def awsRequest(resource: OperatorParams.Resource): Either[Error, GetConfigurationRequest] = Try {
     var builder = GetConfigurationRequest.builder()
       .application(resource.application)
       .environment(resource.environment)
@@ -78,12 +80,12 @@ object GetConfiguration {
   }.toEither.left.map(Error.RequestBuildError(_))
 
 
-  def request(client: AppConfigClient, request: GetConfigurationRequest): Either[Error, GetConfigurationResponse] = Try {
+  private def request(client: AppConfigClient, request: GetConfigurationRequest): Either[Error, GetConfigurationResponse] = Try {
       client.getConfiguration(request)
   }.toEither.left.map(Error.RequestError(_))
 
 
-  def response(response: GetConfigurationResponse): Either[Error, Response] = Try {
+  private def response(response: GetConfigurationResponse): Either[Error, Response] = Try {
     val content = response.content().asUtf8String()
     response.contentType() match {
       case "text/plain" => Response.Text(content)

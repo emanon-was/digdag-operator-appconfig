@@ -19,6 +19,4 @@ _export:
     configuration: "text" # (required)
     client_id: "abcdefghijklmnopqrstuvwxyz" # (required)
     # client_configuration_version: "1" # (optional)
-  store:
-    store_key1: "appconfig.key1"
-    store_key2: "appconfig.key2"
+  store: "appconfig"

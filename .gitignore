@@ -159,7 +159,13 @@ project/plugins/project/
 .bsp/
 project/project/
 project/target/
+
+### Metals ###
 .metals/
+.bloop/
+.ammonite/
+metals.sbt
+
 
 ### Scala ###
 *.class
