@@ -1,11 +1,19 @@
 package io.digdag.plugin.aws.appconfig.getconfiguration
 
-import io.digdag.client.config.Config
-import collection.JavaConverters._
 import scala.util.Try
-import io.digdag.plugin.aws.appconfig.Implicits._
+import cats.implicits._
+import io.digdag.plugin.aws.appconfig.implicits._
+import io.digdag.client.config.Config
 
 object OperatorParams {
+
+  sealed trait Error {
+    val cause: Throwable
+  }
+
+  object Error {
+    case class ConvertError(val cause: Throwable) extends Error
+  }
 
   case class Values (
     val profile: Profile,
@@ -31,29 +39,29 @@ object OperatorParams {
     val clientConfigurationVersion: Option[String]
   )
 
-  def apply(config: Config): Try[Values] = {
-    for {
+  def apply(config: Config): Either[Error, Values] = {
+    val result = for {
       profile <- profile(config)
       resource <- resource(config)
       store <- store(config)
     } yield {
       Values(profile, resource, store)
     }
+    result.toEither(Error.ConvertError)
   }
 
-  private def profile(config: Config): Try[Profile] = {
+  private def profile(config: Config): Try[Profile] =
     for {
-      profileConfig <- config.getRequiredConfig("profile")
+      profileConfig <- config.getRequiredNode("profile")
       region <- profileConfig.getRequiredValue[String]("region")
-      credentials <- credentials(profileConfig)
+      credentials <- credentials(profileConfig).sequence
     } yield {
       Profile(region, credentials)
     }
-  }
 
-  private def credentials(profileConfig: Config): Try[Option[Credentials]] = {
-    val ret = for {
-      credentialsConfig <- profileConfig.getOptionalConfig("credentials")
+  private def credentials(profileConfig: Config): Option[Try[Credentials]] =
+    for {
+      credentialsConfig <- profileConfig.getOptionalNode("credentials")
     } yield {
       for {
         accessKeyId <- credentialsConfig.getRequiredValue[String]("access_key_id")
@@ -62,12 +70,10 @@ object OperatorParams {
         Credentials(accessKeyId, secretAccessKey)
       }
     }
-    Try(ret.map(_.unwrap()))
-  }
 
-  private def resource(config: Config): Try[Resource] = {
+  private def resource(config: Config): Try[Resource] =
     for {
-      resourceConfig <- config.getRequiredConfig("resource")
+      resourceConfig <- config.getRequiredNode("resource")
       application <- resourceConfig.getRequiredValue[String]("application")
       environment <- resourceConfig.getRequiredValue[String]("environment")
       configuration <- resourceConfig.getRequiredValue[String]("configuration")
@@ -76,9 +82,8 @@ object OperatorParams {
     } yield {
       Resource(application, environment, configuration, clientId, clientConfigurationVersion)
     }
-  }
 
-  private def store(config: Config): Try[Option[String]] = {
+  private def store(config: Config): Try[Option[String]] =
     config.getOptionalValue[String]("store")
-  }
+
 }

@@ -3,6 +3,9 @@ import sbt._
 object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
+  // cats
+  val catsDeps = "org.typelevel" %% "cats-core" % "2.2.0"
+
   // Digdag
   val digdagVersion = "0.9.42"
   val digdagDeps = Seq(

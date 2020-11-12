@@ -1,7 +1,7 @@
 package io.digdag.plugin.aws.appconfig.getconfiguration
 
-import io.digdag.plugin.aws.appconfig.Implicits._
 import scala.util.{Try, Success, Failure}
+import io.digdag.plugin.aws.appconfig.implicits._
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.auth.credentials.{
   AwsCredentialsProvider,
@@ -20,6 +20,7 @@ object GetConfiguration {
   sealed trait Error {
     val cause: Throwable
   }
+
   object Error {
     case class ClientBuildError(val cause: Throwable) extends Error
     case class RequestBuildError(val cause: Throwable) extends Error
@@ -30,26 +31,25 @@ object GetConfiguration {
   sealed trait Response {
     val content: String
   }
+
   object Response {
     case class Text(val content: String) extends Response
     case class Json(val content: String) extends Response
     case class Yaml(val content: String) extends Response
-    case class Other(val content: String) extends Response
+    case class Unsupported(val content: String) extends Response
   }
 
-
-  def apply(profile: OperatorParams.Profile, resource: OperatorParams.Resource): Either[Error, Response] = {
+  def apply(profile: OperatorParams.Profile, resource: OperatorParams.Resource): Either[Error, Response] =
     for {
-      awsClient <- awsClient(profile)
-      awsRequest <- awsRequest(resource)
-      awsResponse <- request(awsClient, awsRequest)
-      response <- response(awsResponse)
+      awsClient <- awsClient(profile).toEither(Error.ClientBuildError)
+      awsRequest <- awsRequest(resource).toEither(Error.RequestBuildError)
+      awsResponse <- request(awsClient, awsRequest).toEither(Error.RequestError)
+      response <- response(awsResponse).toEither(Error.ResponseError)
     } yield {
       response
     }
-  }
 
-  private def awsClient(profile: OperatorParams.Profile): Either[Error, AppConfigClient] = Try {
+  private def awsClient(profile: OperatorParams.Profile): Try[AppConfigClient] = Try {
     val region = Region.of(profile.region)
     val credentialsProvider = profile.credentials match {
       case None => DefaultCredentialsProvider.create()
@@ -63,36 +63,34 @@ object GetConfiguration {
       .region(region)
       .credentialsProvider(credentialsProvider)
       .build()
-  }.toEither.left.map(Error.ClientBuildError(_))
+  }
 
-
-  private def awsRequest(resource: OperatorParams.Resource): Either[Error, GetConfigurationRequest] = Try {
-    var builder = GetConfigurationRequest.builder()
+  private def awsRequest(resource: OperatorParams.Resource): Try[GetConfigurationRequest] = Try {
+    GetConfigurationRequest.builder()
       .application(resource.application)
       .environment(resource.environment)
       .configuration(resource.confinguration)
       .clientId(resource.clientId)
-    builder = resource.clientConfigurationVersion match {
-      case None => builder
-      case Some(x) => builder.clientConfigurationVersion(x)
-    }
-    builder.build()
-  }.toEither.left.map(Error.RequestBuildError(_))
+      .let { builder =>
+        resource.clientConfigurationVersion match {
+          case None => builder
+          case Some(x) => builder.clientConfigurationVersion(x)
+        }
+      }
+      .build()
+  }
 
-
-  private def request(client: AppConfigClient, request: GetConfigurationRequest): Either[Error, GetConfigurationResponse] = Try {
+  private def request(client: AppConfigClient, request: GetConfigurationRequest): Try[GetConfigurationResponse] = Try {
       client.getConfiguration(request)
-  }.toEither.left.map(Error.RequestError(_))
+  }
 
-
-  private def response(response: GetConfigurationResponse): Either[Error, Response] = Try {
+  private def response(response: GetConfigurationResponse): Try[Response] = Try {
     val content = response.content().asUtf8String()
     response.contentType() match {
       case "text/plain" => Response.Text(content)
       case "application/json" => Response.Json(content)
       case "application/x-yaml" => Response.Yaml(content)
-      case _ => Response.Other(content)
+      case _ => Response.Unsupported(content)
     }
-  }.toEither.left.map(Error.ResponseError(_))
-
+  }
 }
