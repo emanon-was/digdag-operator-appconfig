@@ -26,4 +26,13 @@ object Dependencies {
     "software.amazon.awssdk" % "bom" % awsjavasdkVersion pomOnly(),
     "software.amazon.awssdk" % "appconfig" % awsjavasdkVersion,
   )
+
+  // Json/Yaml
+  val circeVersion = "0.13.0"
+  val circleDeps = Seq(
+    "io.circe" %% "circe-core",
+    "io.circe" %% "circe-generic",
+    "io.circe" %% "circe-parser",
+    "io.circe" %% "circe-yaml"
+  ).map(_ % circeVersion)
 }

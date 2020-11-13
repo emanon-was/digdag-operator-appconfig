@@ -1,6 +1,6 @@
 import Dependencies._
 
-ThisBuild / scalaVersion     := "2.12.8"
+ThisBuild / scalaVersion     := "2.12.12"
 ThisBuild / version          := "1.0.0"
 ThisBuild / organization     := "io.digdag.plugin"
 ThisBuild / organizationName := "aws-appconfig"
@@ -23,6 +23,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++= digdagDeps.map(dep => Seq(dep % Provided, dep % Test)).flatten,
     libraryDependencies ++= slf4jDeps.map(dep => Seq(dep % Provided, dep % Test)).flatten,
     libraryDependencies ++= awsjavasdkDeps,
+    libraryDependencies ++= circleDeps,
   )
 
 

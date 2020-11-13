@@ -26,6 +26,12 @@ package object implicits {
       val value = config.getNestedOrGetEmpty(key)
       if (value.isEmpty) None else Some(value)
     }
+    def setValue(key: String, value: Any): Try[Config] = Try {
+      config.set(key, value)
+    }
+    def setNode(key: String, value: Config): Config = {
+      config.setNested(key, value)
+    }
   }
 
   implicit class RichTry[T](val result: Try[T]) {

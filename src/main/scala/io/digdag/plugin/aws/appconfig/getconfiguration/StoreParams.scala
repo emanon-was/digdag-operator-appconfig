@@ -7,6 +7,7 @@ import io.digdag.client.DigdagClient
 import io.digdag.client.config.Config
 import io.digdag.client.config.ConfigFactory
 import io.digdag.plugin.aws.appconfig.getconfiguration.GetConfiguration.Response._
+import io.circe.yaml.{parser => yamlParser}
 
 object StoreParams {
 
@@ -46,8 +47,12 @@ object StoreParams {
     Digdag.emptyConfig().setNested(key, Digdag.configFactory().fromJsonString(content))
   }
 
-  def yaml(key: String, content: String): Try[Config] =
-    text(key, content)
+  def yaml(key: String, content: String): Try[Config] = Try {
+    val json = yamlParser.parse(content)
+      .map(_.noSpaces)
+      .valueOr(throw _)
+    Digdag.emptyConfig().setNested(key, Digdag.configFactory().fromJsonString(json))
+  }
 
   def unsupported(key: String, content: String): Try[Config] =
     text(key, content)

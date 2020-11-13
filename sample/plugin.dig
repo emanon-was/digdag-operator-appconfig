@@ -16,7 +16,10 @@ _export:
   resource: # (required)
     application: "digdag" # (required)
     environment: "main" # (required)
-    configuration: "text" # (required)
+    configuration: "json" # (required)
     client_id: "abcdefghijklmnopqrstuvwxyz" # (required)
     # client_configuration_version: "1" # (optional)
   store: "appconfig"
+
++step2:
+  echo>: ${appconfig}
