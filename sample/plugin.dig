@@ -4,7 +4,6 @@ _export:
       - https://jitpack.io
     dependencies:
       - io.digdag.plugin:digdag-operator-aws-appconfig:1.0.0
-      # - com.github.emanon-was:digdag-operator-aws-appconfig:master-8b6351fdd6-1
 
 +step1:
   aws.appconfig.get_configuration>:

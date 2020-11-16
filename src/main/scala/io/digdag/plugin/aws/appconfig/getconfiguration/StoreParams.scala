@@ -22,32 +22,32 @@ object StoreParams {
     case class UnsupportedError(val cause: Throwable) extends Error
   }
 
-  def apply(store: Option[String], response: GetConfiguration.Response, cf: ConfigFactory): Either[Error, Config] =
+  def apply(store: Option[String], response: GetConfiguration.Response)(implicit cf: ConfigFactory): Either[Error, Config] =
     store match {
       case None => Right(cf.create())
       case Some(key) =>
         response match {
-          case Text(content) => text(key, content, cf).toEither(Error.TextError)
-          case Json(content) => json(key, content, cf).toEither(Error.JsonError)
-          case Yaml(content) => yaml(key, content, cf).toEither(Error.YamlError)
-          case Unsupported(content) => unsupported(key, content, cf).toEither(Error.UnsupportedError)
+          case Text(content) => text(key, content).toEither(Error.TextError)
+          case Json(content) => json(key, content).toEither(Error.JsonError)
+          case Yaml(content) => yaml(key, content).toEither(Error.YamlError)
+          case Unsupported(content) => unsupported(key, content).toEither(Error.UnsupportedError)
         }
     }
 
-  def text(key: String, content: String, cf: ConfigFactory): Try[Config] = Try {
+  def text(key: String, content: String)(implicit cf: ConfigFactory): Try[Config] = Try {
     cf.create().set(key, content)
   }
 
-  def json(key: String, content: String, cf: ConfigFactory): Try[Config] = Try {
+  def json(key: String, content: String)(implicit cf: ConfigFactory): Try[Config] = Try {
     cf.create().setNested(key, cf.fromJsonString(content))
   }
 
-  def yaml(key: String, content: String, cf: ConfigFactory): Try[Config] = Try {
+  def yaml(key: String, content: String)(implicit cf: ConfigFactory): Try[Config] = Try {
     yamlParser.parse(content).map(_.noSpaces).valueOr(throw _)
       .let { json => cf.create().setNested(key, cf.fromJsonString(json)) }
   }
 
-  def unsupported(key: String, content: String, cf: ConfigFactory): Try[Config] =
-    text(key, content, cf)
+  def unsupported(key: String, content: String)(implicit cf: ConfigFactory): Try[Config] =
+    text(key, content)
 
 }
