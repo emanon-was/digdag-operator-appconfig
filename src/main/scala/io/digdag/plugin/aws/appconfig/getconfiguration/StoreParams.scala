@@ -22,39 +22,32 @@ object StoreParams {
     case class UnsupportedError(val cause: Throwable) extends Error
   }
 
-  def apply(store: Option[String], response: GetConfiguration.Response): Either[Error, Config] =
+  def apply(store: Option[String], response: GetConfiguration.Response, cf: ConfigFactory): Either[Error, Config] =
     store match {
-      case None => Right(Digdag.emptyConfig())
+      case None => Right(cf.create())
       case Some(key) =>
         response match {
-          case Text(content) => text(key, content).toEither(Error.TextError)
-          case Json(content) => json(key, content).toEither(Error.JsonError)
-          case Yaml(content) => yaml(key, content).toEither(Error.YamlError)
-          case Unsupported(content) => unsupported(key, content).toEither(Error.UnsupportedError)
+          case Text(content) => text(key, content, cf).toEither(Error.TextError)
+          case Json(content) => json(key, content, cf).toEither(Error.JsonError)
+          case Yaml(content) => yaml(key, content, cf).toEither(Error.YamlError)
+          case Unsupported(content) => unsupported(key, content, cf).toEither(Error.UnsupportedError)
         }
     }
 
-  object Digdag {
-    def configFactory(): ConfigFactory = new ConfigFactory(DigdagClient.objectMapper())
-    def emptyConfig(): Config = configFactory().create()
+  def text(key: String, content: String, cf: ConfigFactory): Try[Config] = Try {
+    cf.create().set(key, content)
   }
 
-  def text(key: String, content: String): Try[Config] = Try {
-    Digdag.emptyConfig().set(key, content)
+  def json(key: String, content: String, cf: ConfigFactory): Try[Config] = Try {
+    cf.create().setNested(key, cf.fromJsonString(content))
   }
 
-  def json(key: String, content: String): Try[Config] = Try {
-    Digdag.emptyConfig().setNested(key, Digdag.configFactory().fromJsonString(content))
+  def yaml(key: String, content: String, cf: ConfigFactory): Try[Config] = Try {
+    yamlParser.parse(content).map(_.noSpaces).valueOr(throw _)
+      .let { json => cf.create().setNested(key, cf.fromJsonString(json)) }
   }
 
-  def yaml(key: String, content: String): Try[Config] = Try {
-    val json = yamlParser.parse(content)
-      .map(_.noSpaces)
-      .valueOr(throw _)
-    Digdag.emptyConfig().setNested(key, Digdag.configFactory().fromJsonString(json))
-  }
-
-  def unsupported(key: String, content: String): Try[Config] =
-    text(key, content)
+  def unsupported(key: String, content: String, cf: ConfigFactory): Try[Config] =
+    text(key, content, cf)
 
 }

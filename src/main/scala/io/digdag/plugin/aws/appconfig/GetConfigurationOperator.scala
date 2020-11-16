@@ -31,11 +31,12 @@ class GetConfigurationOperator(operatorName: String, ctx: OperatorContext) exten
   }
 
   override def runTask(): TaskResult = {
-    val config = request.getConfig
+    val configFactory = request.getConfig.getFactory()
+    val params = request.getConfig
     val result: Either[Error, Config] = for {
-      operatorParams <- OperatorParams(config).left.map(Error.OperatorParamsError)
+      operatorParams <- OperatorParams(params).left.map(Error.OperatorParamsError)
       response <- GetConfiguration(operatorParams.profile, operatorParams.resource).left.map(Error.GetConfigurationError)
-      storeParams <- StoreParams(operatorParams.store, response).left.map(Error.StoreParamsError)
+      storeParams <- StoreParams(operatorParams.store, response, configFactory).left.map(Error.StoreParamsError)
     } yield storeParams
 
     val logger = LoggerFactory.getLogger(operatorName)
