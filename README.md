@@ -1,5 +1,7 @@
 # digdag-operator-appconfig
 
+[![](https://jitpack.io/v/emanon-was/digdag-operator-aws-appconfig.svg)](https://jitpack.io/#emanon-was/digdag-operator-aws-appconfig) [![Digdag](https://img.shields.io/badge/digdag-v0.9.42-brightgreen.svg)](https://github.com/treasure-data/digdag/releases/tag/v0.9.42)
+
 # Usage
 
 ```yaml
