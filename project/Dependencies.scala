@@ -32,7 +32,8 @@ object Dependencies {
   val circleDeps = Seq(
     "io.circe" %% "circe-core",
     "io.circe" %% "circe-generic",
+    "io.circe" %% "circe-generic-extras",
     "io.circe" %% "circe-parser",
-    "io.circe" %% "circe-yaml"
+    "io.circe" %% "circe-yaml",
   ).map(_ % circeVersion)
 }

@@ -1,89 +1,62 @@
 package io.digdag.plugin.aws.appconfig.getconfiguration
 
 import scala.util.Try
-import cats.implicits._
 import io.digdag.plugin.aws.appconfig.implicits._
 import io.digdag.client.config.Config
+import io.circe.parser.parse
+import io.circe.generic.auto._
+
+case class OperatorParams(
+  val client: OperatorParams.Client,
+  val params: OperatorParams.Params,
+  val output: Option[String]
+)
 
 object OperatorParams {
 
-  sealed trait Error {
-    val cause: Throwable
-  }
-
-  object Error {
-    case class ConvertError(val cause: Throwable) extends Error
-  }
-
-  case class Values (
-    val profile: Profile,
-    val resource: Resource,
-    val store: Option[String]
-  )
-
-  case class Profile(
-    val region: String,
-    val credentials: Option[Credentials]
+  case class Client(
+    val credentials: Option[Credentials],
+    val profile: Option[Profile],
+    val region: Option[String]
   )
 
   case class Credentials(
-    val accessKeyId: String,
-    val secretAccessKey: String
+    val access_key_id: String,
+    val secret_access_key: String
   )
 
-  case class Resource(
+  case class Profile(
+    val name: Option[String],
+    val file: Option[String]
+  )
+
+  case class RequiredParams(
+    val params: Params,
+    val output: Option[String]
+  )
+
+  case class Params(
     val application: String,
     val environment: String,
-    val confinguration: String,
-    val clientId: String,
-    val clientConfigurationVersion: Option[String]
+    val configuration: String,
+    val client_id: String,
+    val client_configuration_version: Option[Integer]
   )
 
-  def apply(config: Config): Either[Error, Values] = {
-    val result = for {
-      profile <- profile(config)
-      resource <- resource(config)
-      store <- store(config)
-    } yield {
-      Values(profile, resource, store)
-    }
-    result.toEither(Error.ConvertError)
+  sealed trait Error extends Err
+  object Error {
+    case class ConfigJsonParseError(val err: Throwable) extends Error with Err.Throws
+    case class ClientJsonParseError(val err: Throwable) extends Error with Err.Throws
+    case class ParamsJsonParseError(val err: Throwable) extends Error with Err.Throws
+    case class UnexpectedError(val err: Throwable) extends Error with Err.Throws
   }
 
-  private def profile(config: Config): Try[Profile] =
+  def apply(config: Config): Either[Error, OperatorParams] =
     for {
-      profileConfig <- config.getRequiredNode("profile")
-      region <- profileConfig.getRequiredValue[String]("region")
-      credentials <- credentials(profileConfig).sequence
-    } yield {
-      Profile(region, credentials)
-    }
-
-  private def credentials(profileConfig: Config): Option[Try[Credentials]] =
-    for {
-      credentialsConfig <- profileConfig.getOptionalNode("credentials")
-    } yield {
-      for {
-        accessKeyId <- credentialsConfig.getRequiredValue[String]("access_key_id")
-        secretAccessKey <- credentialsConfig.getRequiredValue[String]("secret_access_key")
-      } yield {
-        Credentials(accessKeyId, secretAccessKey)
-      }
-    }
-
-  private def resource(config: Config): Try[Resource] =
-    for {
-      resourceConfig <- config.getRequiredNode("resource")
-      application <- resourceConfig.getRequiredValue[String]("application")
-      environment <- resourceConfig.getRequiredValue[String]("environment")
-      configuration <- resourceConfig.getRequiredValue[String]("configuration")
-      clientId <- resourceConfig.getRequiredValue[String]("client_id")
-      clientConfigurationVersion <- resourceConfig.getOptionalValue[String]("client_configuration_version")
-    } yield {
-      Resource(application, environment, configuration, clientId, clientConfigurationVersion)
-    }
-
-  private def store(config: Config): Try[Option[String]] =
-    config.getOptionalValue[String]("store")
-
+      json <- parse(config.toString()).left.map(Error.ConfigJsonParseError)
+      clientJson <- json.flatten("aws.configure", "aws.appconfig", "aws.appconfig.get_configuration").toEither(Error.UnexpectedError)
+      paramsJson <- json.flatten("aws.appconfig.get_configuration").toEither(Error.UnexpectedError)
+      client <- clientJson.as[Client].left.map(Error.ClientJsonParseError)
+      requiredParams <- paramsJson.as[RequiredParams].left.map(Error.ParamsJsonParseError)
+    } yield OperatorParams(client, requiredParams.params, requiredParams.output)
 }
