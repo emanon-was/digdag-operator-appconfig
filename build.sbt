@@ -1,7 +1,7 @@
 import Dependencies._
 
 ThisBuild / scalaVersion     := "2.12.12"
-ThisBuild / version          := "1.0.0"
+ThisBuild / version          := "1.1.0"
 ThisBuild / organization     := "io.digdag.plugin"
 ThisBuild / organizationName := "aws-appconfig"
 

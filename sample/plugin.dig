@@ -3,7 +3,7 @@ _export:
     repositories:
       - https://jitpack.io
     dependencies:
-      - io.digdag.plugin:digdag-operator-aws-appconfig:1.0.0
+      - io.digdag.plugin:digdag-operator-aws-appconfig:1.1.0
   aws.configure:
     # credentials: # (optional)
     #   access_key_id: AKIAIOSFODNN7EXAMPLE # (required)

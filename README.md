@@ -11,7 +11,7 @@ _export:
     repositories:
       - https://jitpack.io
     dependencies:
-      - io.digdag.plugin:digdag-operator-aws-appconfig:1.1.0
+      - com.github.emanon-was:digdag-operator-aws-appconfig:1.1.0
   aws.configure:
     # credentials: # (optional)
     #   access_key_id: AKIAIOSFODNN7EXAMPLE # (required)
@@ -85,7 +85,7 @@ _export:
     repositories:
       - https://jitpack.io
     dependencies:
-      - io.digdag.plugin:digdag-operator-aws-appconfig:x.y.z
+      - com.github.emanon-was:digdag-operator-aws-appconfig:x.y.z
 
   aws.appconfig.get_configuration: # priority-2
     params: ...
@@ -109,7 +109,7 @@ _export:
     repositories:
       - https://jitpack.io
     dependencies:
-      - io.digdag.plugin:digdag-operator-aws-appconfig:x.y.z
+      - com.github.emanon-was:digdag-operator-aws-appconfig:x.y.z
 
   aws.configure:
     region: ... # priority-4
@@ -143,7 +143,7 @@ _export:
     repositories:
       - https://jitpack.io
     dependencies:
-      - io.digdag.plugin:digdag-operator-aws-appconfig:x.y.z
+      - com.github.emanon-was:digdag-operator-aws-appconfig:x.y.z
 
   aws.configure:
     credentials: # priority-4
